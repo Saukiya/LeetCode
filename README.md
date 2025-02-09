@@ -1,0 +1,1 @@
+[防止脑子不好使](https://leetcode.cn/u/saukiya/)
