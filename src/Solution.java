@@ -1,9 +1,10 @@
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.EmptyStackException;
+import java.util.*;
 
 class Solution {
+
+    private static void log(Object... args) {
+        System.out.println(Arrays.toString(args));
+    }
 
     public static void main(String[] args) {
         Solution solution = new Solution();
@@ -13,7 +14,116 @@ class Solution {
     }
 
     public static void start(Solution solution) {
-        log(solution.jump(new int[]{7,0,9,6,9,6,1,7,9,0,1,2,9,0,3}));
+        log(" === " + solution.catMouseGame(new int[][]{{2,6},{2,4,5,6},{0,1,3,5,6},{2},{1,5,6},{1,2,4},{0,1,2,4}}), 2);
+        log(" === " + solution.catMouseGame(new int[][]{{3,4},{3,5},{3,6},{0,1,2},{0,5,6},{1,4},{2,4}}), 0);
+        log(" === " + solution.catMouseGame(new int[][]{{2,3,4},{2,4},{0,1,4},{0,4},{0,1,2,3}}), 2);
+        log(" === " + solution.catMouseGame(new int[][]{{2,3},{2},{0,1},{0,4},{3}}), 2);
+        log(" === " + solution.catMouseGame(new int[][]{{2,3},{3,4},{0,4},{0,1},{1,2}}), 1);
+        log(" === " + solution.catMouseGame(new int[][]{{2,5},{3},{0,4,5},{1,4,5},{2,3},{0,2,3}}), 0);
+        log(" === " + solution.catMouseGame(new int[][]{{1,3},{0},{3},{0,2}}), 1);
+    }
+
+    // https://leetcode.cn/problems/cat-and-mouse/description/?envType=daily-question&envId=2025-02-10
+    public int catMouseGame(int[][] graph) {
+        // 老鼠1点触发, 终点是0点 TODO 如果有多条最短路线
+        int[] shuPath = catMouseGame_shu(graph, 1, 0, new NumberCombiner(2), 0, 0);
+        log("shu", Arrays.toString(shuPath));
+        if (shuPath == null) return 2;
+        // 猫2点出发, 寻路的总步数不能大于老鼠
+        int[] maoPath = catMouseGame_mao(graph, 2, shuPath, new NumberCombiner(0), 0, shuPath.length);
+        log("mao", Arrays.toString(maoPath));
+        if (maoPath != null) {
+            
+            // TODO 猫能抓到老鼠, 判断老鼠是否能逃生, 如果没有则返回2
+            // TODO 老鼠的所有临边节点的下一个节点所需步数 == 猫到达此节点的步数时
+            
+            // TODO 判断是否有其他节点可以走
+            
+            shuPath = catMouseGame_shu(graph, shuPath[maoPath.length - 2], shuPath[Math.min(maoPath.length, shuPath.length - 1)], new NumberCombiner(maoPath[maoPath.length - 1]), 0, 0);
+            log("shu", Arrays.toString(shuPath));
+            if (shuPath == null) return 2;
+        } else return 1;
+        return 0;
+    }
+
+    /**
+     * 寻路逻辑
+     * 返回路径int[]
+     * 
+     * @param graph 地图节点
+     * @param current 当前位置
+     * @param target 目标位置
+     * @param black 不能去的地方
+     * @param length 移动长度
+     * @return
+     */
+    public int[] catMouseGame_shu(int[][] graph, int current, int target, NumberCombiner black, int length, int max) {
+        length++;
+        black.add(current);
+        if (length == max) return null; // 超出最小步数直接取消
+        int min = max;
+        int[] result = null;
+        for (int i : graph[current]) {
+            if (i == target) {
+                result = new int[length + 1];
+                result[length] = i;
+                break;
+            }
+            if (black.contains(i)) continue;
+            int[] temp = catMouseGame_shu(graph, i, target, black, length, min);
+            if (temp == null) {
+                black.remove(i);
+                continue;
+            }
+            min = temp.length;
+            (result = temp)[length] = i;
+        }
+        if (result != null && length == 1) {
+            result[0] = current;
+        }
+        return result;
+    }
+
+    /**
+     * 寻路逻辑
+     * 返回路径int[]
+     *
+     * @param graph 地图节点
+     * @param current 当前位置
+     * @param shuPath 老鼠沿途路径
+     * @param black 不能去的地方
+     * @param length 移动长度
+     * @return
+     */
+    public int[] catMouseGame_mao(int[][] graph, int current, int[] shuPath, NumberCombiner black, int length, int max) {
+        length++;
+        black.add(current);
+        if (length == max) return null; // 超出最小步数直接取消
+        int min = max;
+        int[] result = null;
+        do1:
+        for (int i : graph[current]) {
+            if (black.contains(i)) continue;
+            for (int si = 0; si < shuPath.length; si++) {
+                if (i == shuPath[si] && si + 1 > length) {
+                    result = new int[length + 1];
+                    result[length] = i;
+                    break do1;
+                }
+            }
+            int[] temp = catMouseGame_mao(graph, i, shuPath, black, length, min);
+            if (temp == null) {
+                black.remove(i);
+                continue;
+            }
+            // 如果比之前的路径更短
+            min = temp.length;
+            (result = temp)[length] = i;
+        }
+        if (result != null && length == 1) {
+            result[0] = current;
+        }
+        return result;
     }
 
     public int jump(int[] nums) {
@@ -168,9 +278,42 @@ class Solution {
         return left;
     }
 
-    private static void log(Object... args) {
-        System.out.println(Arrays.toString(args));
-        System.out.println();
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (nums == null || nums.length == 0) {
+            return res;
+        }
+        // 对数组进行排序，确保相同元素相邻
+        Arrays.sort(nums);
+        boolean[] used = new boolean[nums.length];
+        backtrack(nums, used, new ArrayList<>(), res);
+        return res;
+    }
+
+    private void backtrack(int[] nums, boolean[] used, List<Integer> path, List<List<Integer>> res) {
+        // 当路径长度等于数组长度时，说明已经生成了一个完整的排列
+        if (path.size() == nums.length) {
+            res.add(new ArrayList<>(path));
+            return;
+        }
+        for (int i = 0; i < nums.length; i++) {
+            // 如果当前元素已经被使用，跳过
+            if (used[i]) {
+                continue;
+            }
+            // 避免生成重复排列
+            if (i > 0 && nums[i] == nums[i - 1] && !used[i - 1]) {
+                continue;
+            }
+            // 标记当前元素为已使用
+            used[i] = true;
+            path.add(nums[i]);
+            // 递归生成下一个位置的元素
+            backtrack(nums, used, path, res);
+            // 回溯操作，撤销选择
+            used[i] = false;
+            path.remove(path.size() - 1);
+        }
     }
 
     public static class IntStack {
