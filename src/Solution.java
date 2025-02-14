@@ -14,13 +14,238 @@ class Solution {
     }
 
     public static void start(Solution solution) {
-        log(" === " + solution.catMouseGame(new int[][]{{2,6},{2,4,5,6},{0,1,3,5,6},{2},{1,5,6},{1,2,4},{0,1,2,4}}), 2);
-        log(" === " + solution.catMouseGame(new int[][]{{3,4},{3,5},{3,6},{0,1,2},{0,5,6},{1,4},{2,4}}), 0);
-        log(" === " + solution.catMouseGame(new int[][]{{2,3,4},{2,4},{0,1,4},{0,4},{0,1,2,3}}), 2);
-        log(" === " + solution.catMouseGame(new int[][]{{2,3},{2},{0,1},{0,4},{3}}), 2);
-        log(" === " + solution.catMouseGame(new int[][]{{2,3},{3,4},{0,4},{0,1},{1,2}}), 1);
-        log(" === " + solution.catMouseGame(new int[][]{{2,5},{3},{0,4,5},{1,4,5},{2,3},{0,2,3}}), 0);
-        log(" === " + solution.catMouseGame(new int[][]{{1,3},{0},{3},{0,2}}), 1);
+//        log("2,-: ", solution.myPow(2,-1));
+//        log("2,0: ", solution.myPow(2,0));
+//        log("2,1: ", solution.myPow(2,1));
+//        solution.solveNQueens(1);
+//        solution.solveNQueens(2);
+//        solution.solveNQueens(3);
+//        solution.solveNQueens(4);
+//        solution.solveNQueens(5);
+//        solution.solveNQueens(6);
+//        solution.solveNQueens(7);
+//        solution.solveNQueens(8);
+        log(solution.solveNQueens(13).size());
+//        log(solution.myPow(2,21));
+//        log(Math.pow(2,21));
+//        log(Math.pow(2,8));
+//        System.out.println(2 | (1L << 3) | (1L << 5) | (1L << 7));
+//        System.out.println(((2 | (1L << 3)) | (1L << 5)) | (1L << 7));
+    }
+
+    int N, solveNQueens_N1, solveNQueens_N2;
+    String[] S;
+
+    // https://leetcode.cn/problems/n-queens/submissions/599407733/?envType=daily-question&envId=2025-02-14
+    public List<List<String>> solveNQueens(int n) {
+        N = n;
+        solveNQueens_N1 = n * 2 - 1; // 偏移 X - Y
+        solveNQueens_N2 = n * 3 - 2; // 偏移 X + Y
+        S = new String[n]; // 提前存储需要生成的字符串
+        char[] chars = new char[n];
+        Arrays.fill(chars, '.');
+        for (int i = 0; i < n; i++) {
+            chars[i] = 'Q';
+            S[i] = String.valueOf(chars);
+            chars[i] = '.';
+        }
+
+        List<List<String>> result = new ArrayList<>();
+        solveNQueens_1(result, new int[n], 0, 0L);
+//        solveNQueens_2(result, new int[n], 0, new boolean[n * 5 - 2]);
+        return result;
+    }
+
+    // 方法一: 位运算存储 只支持(n = 1-13)
+    public void solveNQueens_1(List<List<String>> list, int[] content, int X, long value) {
+        if (X >= N) {
+            solveNQueens_0(list, content, N);
+            return;
+        }
+        // X = 0 时只遍历一半 其他镜像输出
+        for (int Y = 0, L = (X == 0 ? N - N / 2 : N); Y < L; Y++) {
+            if ((value & (1L << Y)) != 0) continue;
+            int Z1 = X - Y + solveNQueens_N1;
+            if ((value & (1L << Z1)) != 0) continue;
+            int Z2 = X + Y + solveNQueens_N2;
+            if ((value & (1L << Z2)) != 0) continue;
+            content[X] = Y;
+            solveNQueens_1(list, content, X + 1, value | (1L << Y) | (1L << Z1) | (1L << Z2));
+        }
+    }
+
+    // 方法二: 数组存储
+    public void solveNQueens_2(List<List<String>> list, int[] content, int X, boolean[] b) {
+        if (X >= N) {
+            solveNQueens_0(list, content, N);
+            return;
+        }
+        // X = 0 时只遍历一半 其他镜像输出
+        for (int Y = 0, L = (X == 0 ? N - N / 2 : N); Y < L; Y++) {
+            if (b[Y]) continue;
+            int Z1 = X - Y + solveNQueens_N1;
+            if (b[Z1]) continue;
+            int Z2 = X + Y + solveNQueens_N2;
+            if (b[Z2]) continue;
+            b[Y] = b[Z1] = b[Z2] = true;
+            content[X] = Y;
+            solveNQueens_2(list, content, X + 1, b);
+            b[Y] = b[Z1] = b[Z2] = false;
+        }
+    }
+
+    // 输出字符串 content[0] 小于n的一半则镜像输出
+    public void solveNQueens_0(List<List<String>> list, int[] content, int n) {
+        content = content.clone();
+        list.add(new EasyList(content));
+        // 达成镜像条件
+        if (content[0] < n / 2) {
+            list.add(new MirrorList(content));
+        }
+    }
+
+    class EasyList extends AbstractList<String> {
+
+        int[] content;
+
+        public EasyList(int[] content) {
+            this.content = content;
+        }
+
+        @Override
+        public String get(int index) {
+            return S[content[index]];
+        }
+
+        @Override
+        public int size() {
+            return N;
+        }
+    }
+
+    class MirrorList extends AbstractList<String> {
+
+        int[] content;
+
+        public MirrorList(int[] content) {
+            this.content = content;
+        }
+
+        @Override
+        public String get(int index) {
+            return S[N - content[index] - 1];
+        }
+
+        @Override
+        public int size() {
+            return N;
+        }
+    }
+
+    public double myPow(double x, int n) {
+        if (n == 0) return 1;
+        if (n / 2 != 0) {
+            double result = myPow(x, n / 2);
+            return result * result * myPow(x, n % 2);
+        } else if (n < 0) {
+            return 1 / x;
+        }
+        return x;
+    }
+
+    // 最小的磁力最大？
+    public int maxDistance(int[] position, int m) {
+        Arrays.sort(position);
+        // 最大值和最小值的平均值
+        int left = 1, right = (position[position.length - 1] - position[0]) / (m - 1), ans = 0;
+        d1:
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            int count = 1, last = position[0];
+            for (int j = 1, length = position.length; j < length; j++) {
+                int i = position[j];
+                if (i - last >= mid) {
+                    if (++count == m) {
+                        ans = mid;
+                        left = mid + 1;
+                        continue d1;
+                    }
+                    last = i;
+                }
+            }
+            right = mid - 1;
+        }
+        return ans;
+    }
+
+    public List<List<String>> groupAnagrams(String[] strs) {
+        Map<Integer, List<String>> map = new HashMap<>();
+        for (String str : strs) {
+            int[] counts = new int[26];
+            for (int i = 0; i < str.length(); i++) {
+                counts[str.charAt(i) - 97]++;
+            }
+            // Arrays.hashCode投机取巧 实际上还挺容易重复的, 应该用StringBuilder
+//            StringBuilder builder = new StringBuilder();
+//            for (int i = 0; i < 26; i++) {
+//                if (counts[i] != 0) {
+//                    builder.append((char) ('a' + i));
+//                    builder.append(counts[i]);
+//                }
+//            }
+            map.computeIfAbsent(Arrays.hashCode(counts), x -> new ArrayList<>()).add(str);
+        }
+        return new ArrayList<>(map.values());
+    }
+
+    public void rotate(int[][] matrix) {
+        int N = matrix.length - 1, X = matrix.length / 2, Y = matrix.length - X, temp;
+        for (int x = 0; x < X; x++) {
+            for (int y = 0; y < Y; y++) {
+                temp = matrix[x][y];
+                matrix[x][y] = matrix[N - y][x];
+                matrix[N - y][x] = matrix[N - x][N - y];
+                matrix[N - x][N - y] = matrix[y][N - x];
+                matrix[y][N - x] = temp;
+            }
+        }
+        log(Arrays.deepToString(matrix));
+    }
+
+    public List<List<Integer>> permute(int[] nums) {
+        List<List<Integer>> list = new LinkedList<>();
+        permute_1(nums, list, new LinkedList<>(), new boolean[nums.length], 0);
+        return list;
+    }
+
+    public void permute_1(int[] nums, List<List<Integer>> allList, LinkedList<Integer> list, boolean[] used, int length) {
+        length++;
+        for (int i = 0; i < used.length; i++) {
+            if (used[i]) continue;
+            used[i] = true;
+            list.addLast(nums[i]);
+            if (length < nums.length) {
+                permute_1(nums, allList, list, used, length);
+            } else {
+                allList.add(new LinkedList<>(list));
+            }
+            list.removeLast();
+            used[i] = false;
+        }
+    }
+
+    public int countBalls(int lowLimit, int highLimit) {
+        int max = 0;
+        int[] ints = new int[45];
+        for (int i = lowLimit; i <= highLimit; i++) {
+            int sum = -1, x = i;
+            while (x != 0) {
+                sum += x % 10;
+                x /= 10;
+            }
+            max = Math.max(++ints[sum], max);
+        }
+        return max;
     }
 
     // https://leetcode.cn/problems/cat-and-mouse/description/?envType=daily-question&envId=2025-02-10
@@ -33,12 +258,12 @@ class Solution {
         int[] maoPath = catMouseGame_mao(graph, 2, shuPath, new NumberCombiner(0), 0, shuPath.length);
         log("mao", Arrays.toString(maoPath));
         if (maoPath != null) {
-            
+
             // TODO 猫能抓到老鼠, 判断老鼠是否能逃生, 如果没有则返回2
             // TODO 老鼠的所有临边节点的下一个节点所需步数 == 猫到达此节点的步数时
-            
+
             // TODO 判断是否有其他节点可以走
-            
+
             shuPath = catMouseGame_shu(graph, shuPath[maoPath.length - 2], shuPath[Math.min(maoPath.length, shuPath.length - 1)], new NumberCombiner(maoPath[maoPath.length - 1]), 0, 0);
             log("shu", Arrays.toString(shuPath));
             if (shuPath == null) return 2;
@@ -49,12 +274,12 @@ class Solution {
     /**
      * 寻路逻辑
      * 返回路径int[]
-     * 
-     * @param graph 地图节点
+     *
+     * @param graph   地图节点
      * @param current 当前位置
-     * @param target 目标位置
-     * @param black 不能去的地方
-     * @param length 移动长度
+     * @param target  目标位置
+     * @param black   不能去的地方
+     * @param length  移动长度
      * @return
      */
     public int[] catMouseGame_shu(int[][] graph, int current, int target, NumberCombiner black, int length, int max) {
@@ -88,11 +313,11 @@ class Solution {
      * 寻路逻辑
      * 返回路径int[]
      *
-     * @param graph 地图节点
+     * @param graph   地图节点
      * @param current 当前位置
      * @param shuPath 老鼠沿途路径
-     * @param black 不能去的地方
-     * @param length 移动长度
+     * @param black   不能去的地方
+     * @param length  移动长度
      * @return
      */
     public int[] catMouseGame_mao(int[][] graph, int current, int[] shuPath, NumberCombiner black, int length, int max) {
