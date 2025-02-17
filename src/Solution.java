@@ -14,39 +14,146 @@ class Solution {
     }
 
     public static void start(Solution solution) {
-//        log("2,-: ", solution.myPow(2,-1));
-//        log("2,0: ", solution.myPow(2,0));
-//        log("2,1: ", solution.myPow(2,1));
-//        solution.solveNQueens(1);
-//        solution.solveNQueens(2);
-//        solution.solveNQueens(3);
-//        solution.solveNQueens(4);
-//        solution.solveNQueens(5);
-//        solution.solveNQueens(6);
-//        solution.solveNQueens(7);
-//        solution.solveNQueens(8);
-        log(solution.solveNQueens(13).size());
-//        log(solution.myPow(2,21));
-//        log(Math.pow(2,21));
-//        log(Math.pow(2,8));
-//        System.out.println(2 | (1L << 3) | (1L << 5) | (1L << 7));
-//        System.out.println(((2 | (1L << 3)) | (1L << 5)) | (1L << 7));
+        log(Arrays.deepToString(solution.merge(new int[][]{{1, 2}, {3, 4}, {5, 6}, {7, 8}, {1, 10}})));
+        log(Arrays.deepToString(solution.merge(new int[][]{{1, 3}, {1, 10}, {4, 6}, {15, 18}})));
+        // [[1,3],[1,10],[4,6],[15,18]]
+
+        // 2   -1 1  -1      -1             1        -1
+        // 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
+        //
     }
 
-    int N, solveNQueens_N1, solveNQueens_N2;
-    String[] S;
+    // TODO 优化
+    public int[][] merge(int[][] intervals) {
+        Map<Integer, Integer> map = new TreeMap<>();
+        for (int[] interval : intervals) {
+            map.put(interval[0], map.getOrDefault(interval[0], 0) + 1);
+            map.put(interval[1], map.getOrDefault(interval[1], 0) - 1);
+        }
+
+        List<int[]> result = new ArrayList<>();
+        int left = 0, sum = 0;
+        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
+            log(entry.getKey() + ": " + entry.getValue());
+            if (sum == 0) {
+                if (entry.getValue() == 0) {
+                    result.add(new int[]{entry.getKey(), entry.getKey()});
+                    continue;
+                }
+                left = entry.getKey();
+                sum = entry.getValue();
+                continue;
+            }
+            sum += entry.getValue();
+            if (sum == 0) {
+                result.add(new int[]{left, entry.getKey()});
+            }
+        }
+        return result.toArray(new int[result.size()][]);
+    }
+
+    public boolean canJump(int[] nums) {
+        int max = 0;
+        for (int i = 0, l = nums.length - 1; i < l; i++) {
+            max = Math.max(nums[i], max);
+            max--;
+            if (max < 0) return false;
+        }
+        return true;
+    }
+
+    public List<Integer> spiralOrder(int[][] matrix) {
+        List<Integer> result = new ArrayList<>();
+        // 每次步进后, M/N减1
+        int M = matrix.length - 1; // M行
+        int N = matrix[0].length; // N列
+        int m = 0, n = -1; // 起点为(0,-1)
+        int step = 1; // 步进
+        // 转圈圈~
+        while (true) {
+            for (int i = 0; i < N; i++) {
+                n += step;
+                result.add(matrix[m][n]);
+            }
+            if (N-- == 0) break;
+            for (int i = 0; i < M; i++) {
+                m += step;
+                result.add(matrix[m][n]);
+            }
+            if (M-- == 0) break;
+            // 步进完两条边后 * -1
+            step *= -1;
+        }
+        return result;
+    }
+
+    public int maxSubArray(int[] nums) {
+        int max = nums[0], sum = 0;
+        for (int num : nums) {
+            sum += num;
+            if (max < sum) {
+                max = sum;
+            }
+            if (sum < 0) {
+                sum = 0;
+            }
+        }
+        return max;
+    }
+
+    public int findSpecialInteger(int[] arr) {
+        if (arr.length < 4) return arr[0];
+        int n = arr.length;
+        int z = n / 8;
+        for (int i = z; i < n; i++) {
+            if (arr[i] == arr[i - z]) {
+                return arr[i];
+            }
+        }
+        return -1;
+    }
+
+    int solveNQueens_N, solveNQueens_N1, solveNQueens_N2;
+    String[] solveNQueens_S;
+
+    public int totalNQueens(int n) {
+        solveNQueens_N = n;
+        solveNQueens_N1 = n * 2 - 1; // 偏移 X - Y
+        solveNQueens_N2 = n * 3 - 2; // 偏移 X + Y
+
+        return totalNQueens_1(0, 0L, false);
+    }
+
+    // 方法一: 位运算存储 只支持(n = 1-13)
+    public int totalNQueens_1(int X, long value, boolean d) {
+        if (X >= solveNQueens_N) {
+            return d ? 2 : 1;
+        }
+        // X = 0 时只遍历一半 其他镜像输出
+        int L = X == 0 ? solveNQueens_N - solveNQueens_N / 2 : solveNQueens_N;
+        int sum = 0;
+        for (int Y = 0; Y < L; Y++) {
+            if ((value & (1L << Y)) != 0) continue;
+            int Z1 = X - Y + solveNQueens_N1;
+            if ((value & (1L << Z1)) != 0) continue;
+            int Z2 = X + Y + solveNQueens_N2;
+            if ((value & (1L << Z2)) != 0) continue;
+            sum += totalNQueens_1(X + 1, value | (1L << Y) | (1L << Z1) | (1L << Z2), d || (X == 0 && Y < solveNQueens_N / 2));
+        }
+        return sum;
+    }
 
     // https://leetcode.cn/problems/n-queens/submissions/599407733/?envType=daily-question&envId=2025-02-14
     public List<List<String>> solveNQueens(int n) {
-        N = n;
+        solveNQueens_N = n;
         solveNQueens_N1 = n * 2 - 1; // 偏移 X - Y
         solveNQueens_N2 = n * 3 - 2; // 偏移 X + Y
-        S = new String[n]; // 提前存储需要生成的字符串
+        solveNQueens_S = new String[n]; // 提前存储需要生成的字符串
         char[] chars = new char[n];
         Arrays.fill(chars, '.');
         for (int i = 0; i < n; i++) {
             chars[i] = 'Q';
-            S[i] = String.valueOf(chars);
+            solveNQueens_S[i] = String.valueOf(chars);
             chars[i] = '.';
         }
 
@@ -58,12 +165,12 @@ class Solution {
 
     // 方法一: 位运算存储 只支持(n = 1-13)
     public void solveNQueens_1(List<List<String>> list, int[] content, int X, long value) {
-        if (X >= N) {
-            solveNQueens_0(list, content, N);
+        if (X >= solveNQueens_N) {
+            solveNQueens_0(list, content, solveNQueens_N);
             return;
         }
         // X = 0 时只遍历一半 其他镜像输出
-        for (int Y = 0, L = (X == 0 ? N - N / 2 : N); Y < L; Y++) {
+        for (int Y = 0, L = (X == 0 ? solveNQueens_N - solveNQueens_N / 2 : solveNQueens_N); Y < L; Y++) {
             if ((value & (1L << Y)) != 0) continue;
             int Z1 = X - Y + solveNQueens_N1;
             if ((value & (1L << Z1)) != 0) continue;
@@ -76,12 +183,12 @@ class Solution {
 
     // 方法二: 数组存储
     public void solveNQueens_2(List<List<String>> list, int[] content, int X, boolean[] b) {
-        if (X >= N) {
-            solveNQueens_0(list, content, N);
+        if (X >= solveNQueens_N) {
+            solveNQueens_0(list, content, solveNQueens_N);
             return;
         }
         // X = 0 时只遍历一半 其他镜像输出
-        for (int Y = 0, L = (X == 0 ? N - N / 2 : N); Y < L; Y++) {
+        for (int Y = 0, L = (X == 0 ? solveNQueens_N - solveNQueens_N / 2 : solveNQueens_N); Y < L; Y++) {
             if (b[Y]) continue;
             int Z1 = X - Y + solveNQueens_N1;
             if (b[Z1]) continue;
@@ -114,12 +221,12 @@ class Solution {
 
         @Override
         public String get(int index) {
-            return S[content[index]];
+            return solveNQueens_S[content[index]];
         }
 
         @Override
         public int size() {
-            return N;
+            return solveNQueens_N;
         }
     }
 
@@ -133,12 +240,12 @@ class Solution {
 
         @Override
         public String get(int index) {
-            return S[N - content[index] - 1];
+            return solveNQueens_S[solveNQueens_N - content[index] - 1];
         }
 
         @Override
         public int size() {
-            return N;
+            return solveNQueens_N;
         }
     }
 
