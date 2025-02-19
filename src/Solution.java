@@ -2,29 +2,268 @@ import java.util.*;
 
 class Solution {
 
+    static TimingsUtil timings;
+
     private static void log(Object... args) {
         System.out.println(Arrays.toString(args));
     }
 
     public static void main(String[] args) {
         Solution solution = new Solution();
-        TimingsUtil timings = new TimingsUtil();
+        timings = new TimingsUtil();
         start(solution);
         timings.print();
     }
 
     public static void start(Solution solution) {
-        log(Arrays.deepToString(solution.merge(new int[][]{{1, 2}, {3, 4}, {5, 6}, {7, 8}, {1, 10}})));
-        log(Arrays.deepToString(solution.merge(new int[][]{{1, 3}, {1, 10}, {4, 6}, {15, 18}})));
-        // [[1,3],[1,10],[4,6],[15,18]]
-
-        // 2   -1 1  -1      -1             1        -1
-        // 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
-        //
+        solution.rotateRight(head(), 1);
+        solution.rotateRight(head(), 2);
+        solution.rotateRight(head(), 3);
+        solution.rotateRight(head(), 4);
+        solution.rotateRight(head(), 5);
+        solution.rotateRight(head(), 6);
+        solution.rotateRight(head(), 7);
     }
 
-    // TODO 优化
+    public static ListNode head() {
+        ListNode head = new ListNode(1);
+        ListNode tail = head;
+        for (int i = 2; i <= 5; i++) {
+            tail = (tail.next = new ListNode(i));
+        }
+        return head;
+    }
+
+    public int uniquePaths(int m, int n) {
+        int temp = 1;
+        return 0;
+    }
+
+    public ListNode rotateRight(ListNode head, int k) {
+        if (head == null || head.next == null) {
+            return head;
+        }
+        ListNode last = head, tail = head;
+        int count = 1;
+        while (tail.next != null) {
+            count++;
+            tail = tail.next;
+        }
+        k = count - k % count;
+        while (--k > 0) {
+            last = last.next;
+        }
+        tail.next = head;
+        head = last.next;
+        last.next = null;
+        return head;
+    }
+
+    // 直接获取集合n的第k个排列
+    public String getPermutation(int n, int k) {
+        // 算出所有阶乘
+        int[] factorials = new int[n];
+        int temp = 1;
+        for (int i = 1; i < n; i++) {
+            temp = factorials[i] = temp * i;
+        }
+
+        k--;
+        StringBuilder sb = new StringBuilder();
+        boolean[] block = new boolean[n];
+        for (int i = n; i > 1; i--) {
+            // 获取当前可能存在的子排列
+            int value = factorials[i - 1];
+            // 获得当前是第几个子排列
+            int index = k / value;
+            // 通过子排列索引获取数字
+            int num = getPermutation_2(block, index);
+            k %= value;
+            sb.append(num);
+        }
+        // 最后一个数直接拿
+        sb.append(getPermutation_2(block, 0));
+        return sb.toString();
+    }
+
+    // 获取可用的数 如果需要1， 但是1被使用的话， 往后找没被用的数字 例如: ([f,t,t,f],1) -> 4
+    public int getPermutation_2(boolean[] blocked, int n) {
+        for (int i = 0; i < blocked.length; i++) {
+            if (blocked[i]) continue;
+            if (n-- <= 0) {
+                blocked[i] = true;
+                return i + 1;
+            }
+        }
+        return 0;
+    }
+
+    public int[][] generateMatrix(int N) {
+        int[][] result = new int[N][N];
+        for (int i = 0; i < N; i++) {
+            result[0][i] = i + 1;
+        }
+        // 每次步进后, M/N减1
+        int m = 0, n = N - 1; // 起点为(0,N-1)
+        int step = 1; // 步进
+        int num = N + 1;
+        // 转圈圈~
+        while (--N > 0) {
+            for (int i = 0; i < N; i++) {
+                m += step;
+                result[m][n] = num++;
+            }
+            step *= -1;
+            for (int i = 0; i < N; i++) {
+                n += step;
+                result[m][n] = num++;
+            }
+        }
+        return result;
+    }
+
+    public int lengthOfLastWord(String s) {
+        int temp = -1;
+        for (int length = s.length() - 1; length >= 0; length--) {
+            if (s.charAt(length) != ' ') {
+                if (temp == -1) {
+                    temp = length;
+                }
+            } else if (temp != -1) {
+                return temp - length;
+            }
+        }
+        return temp + 1;
+    }
+
+    public int[][] insert(int[][] intervals, int[] newInterval) {
+        int n = intervals.length;
+        if (n == 0) {
+            return new int[][]{newInterval};
+        }
+        // 区间外
+        if (intervals[n - 1][1] < newInterval[0]) {
+            int[][] result = new int[n + 1][];
+            result[n] = newInterval;
+            System.arraycopy(intervals, 0, result, 0, n);
+            return result;
+        }
+
+        // 判断在区间内
+        for (int i = 0; i < n; i++) {
+            // 
+            if (intervals[i][1] >= newInterval[0]) {
+                // 插入
+                if (intervals[i][0] > newInterval[1]) {
+                    int[][] result = new int[n + 1][];
+                    System.arraycopy(intervals, 0, result, 0, i);
+                    result[i] = newInterval;
+                    System.arraycopy(intervals, i, result, i + 1, n - i);
+                    return result;
+                }
+                intervals[i][0] = Math.min(newInterval[0], intervals[i][0]);
+                // 覆盖
+                int j = i;
+                while (++j < n) {
+                    if (intervals[j][0] > newInterval[1]) break;
+                }
+                intervals[i][1] = Math.max(intervals[j - 1][1], newInterval[1]);
+                int[][] result = new int[n - j + i + 1][];
+                System.arraycopy(intervals, 0, result, 0, i + 1);
+                System.arraycopy(intervals, j, result, i + 1, n - j);
+                return result;
+            }
+        }
+        return null;
+    }
+
+    public int maxDistance(List<List<Integer>> arrays) {
+        int min1 = 10000, min2 = min1, max1 = -10000, max2 = max1;
+        boolean repeated = false;
+        for (List<Integer> array : arrays) {
+            int left = array.get(0);
+            int right = array.get(array.size() - 1);
+            if (min1 > left) {
+                min2 = min1;
+                min1 = left;
+                if (max1 < right) {
+                    max2 = max1;
+                    max1 = right;
+                    repeated = true;
+                } else {
+                    repeated = false;
+                }
+            } else if (max1 <= right) {
+                max2 = max1;
+                max1 = right;
+                repeated = false;
+            } else {
+                min2 = Math.min(min2, left);
+                max2 = Math.max(max2, right);
+            }
+        }
+        return !repeated ? max1 - min1 : Math.max(max1 - min2, max2 - min1);
+    }
+
+    // 填涂
     public int[][] merge(int[][] intervals) {
+        boolean[] range = new boolean[10001];
+        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+        for (int[] ints : intervals) {
+            Arrays.fill(range, ints[0], ints[1], true);
+            min = Math.min(ints[0], min);
+            max = Math.max(ints[1], max);
+        }
+        List<int[]> list = new ArrayList<>();
+        int r = -1;
+        for (int i = min; i <= max; i++) {
+            if (r != -1) {
+                if (!range[i]) {
+                    list.add(new int[]{r, i});
+                    r = -1;
+                }
+            } else if (range[i]) {
+                r = i;
+            }
+        }
+        if (r != -1) {
+            list.add(new int[]{r, range.length});
+        }
+        return list.toArray(new int[list.size()][]);
+    }
+
+    // 排序+贪婪
+    public int[][] merge_2(int[][] intervals) {
+        Arrays.sort(intervals, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return Integer.compare(o1[0], o2[0]);
+            }
+        });
+        boolean[] blocked = new boolean[intervals.length];
+        int count = intervals.length;
+        for (int x = 0, L = intervals.length - 1; x < L; x++) {
+            if (blocked[x]) continue;
+            int[] X = intervals[x];
+            for (int y = x + 1; y <= L; y++) {
+                int[] Y = intervals[y];
+                if (X[1] >= Y[0]) {
+                    blocked[y] = true;
+                    count--;
+                    X[1] = Math.max(X[1], Y[1]);
+                } else break;
+            }
+        }
+        int[][] result = new int[count][];
+        for (int i = blocked.length - 1; i >= 0; i--) {
+            if (blocked[i]) continue;
+            result[--count] = intervals[i];
+        }
+        return result;
+    }
+
+    // TreeMap+栈
+    public int[][] merge_1(int[][] intervals) {
         Map<Integer, Integer> map = new TreeMap<>();
         for (int[] interval : intervals) {
             map.put(interval[0], map.getOrDefault(interval[0], 0) + 1);
