@@ -16,27 +16,112 @@ class Solution {
     }
 
     public static void start(Solution solution) {
-        solution.rotateRight(head(), 1);
-        solution.rotateRight(head(), 2);
-        solution.rotateRight(head(), 3);
-        solution.rotateRight(head(), 4);
-        solution.rotateRight(head(), 5);
-        solution.rotateRight(head(), 6);
-        solution.rotateRight(head(), 7);
+        log(Arrays.toString(solution.plusOne(new int[] {1, 0})));
     }
 
-    public static ListNode head() {
-        ListNode head = new ListNode(1);
-        ListNode tail = head;
-        for (int i = 2; i <= 5; i++) {
-            tail = (tail.next = new ListNode(i));
+    public int[] plusOne(int[] digits) {
+        for (int i = digits.length - 1; i >= 0; i--) {
+            if (digits[i] == 9) {
+                digits[i] = 0;
+            } else {
+                digits[i]++;
+                return digits;
+            }
         }
-        return head;
+        digits = new int[digits.length + 1];
+        digits[0] = 1;
+        return digits;
+    }
+
+    public boolean isNumber(String s) {
+        // canE允许指数, canE允许负数, E指数中, N负数中, D小数中, H有效中
+        boolean canE = false, canN = true, E = false, N = false, D = false, H = false;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case 'E':
+                case 'e':
+                    if (E || !canE) return false;
+                    E = true;
+                    N = false; // 允许指数后的符号
+                    H = false; // E后需有数字
+                    canN = true; // 允许符号
+                    break;
+                case '+':
+                case '-':
+                    if (N || !canN) return false;
+                    N = true;
+                    break;
+                case '.':
+                    if (E || D) return false;
+                    D = true;
+                    canN = false; // 小数点后不能有符号
+                    break;
+                case '0': case '1': case '2': case '3': case '4':
+                case '5': case '6': case '7': case '8': case '9':
+                    canN = false; // 数字后不可接符号
+                    canE = true;   // 允许后续出现E
+                    H = true;     // 有效数字存在
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return H;
+    }
+
+    public int minPathSum(int[][] grid) {
+        int m = grid.length, n = grid[0].length;
+        int[][] dp = new int[m][n];
+        dp[0][0] = grid[0][0];
+        for (int x = 1; x < m; x++) {
+            dp[x][0] = dp[x - 1][0] + grid[x][0];
+        }
+        for (int y = 1; y < n; y++) {
+            dp[0][y] = dp[0][y - 1] + grid[0][y];
+        }
+
+        for (int x = 1; x < m; x++) {
+            int[] g = grid[x], d1 = dp[x], d2 = dp[x - 1];
+            for (int y = 1; y < n; y++) {
+                d1[y] = Math.min(d2[y], d1[y - 1]) + g[y];
+            }
+        }
+        return dp[m - 1][n - 1];
+    }
+
+    public int uniquePathsWithObstacles(int[][] obstacleGrid) {
+        int m = obstacleGrid.length, n = obstacleGrid[0].length;
+        int[][] dp = new int[m][n];
+        dp[0][0] = 1;
+        for (int x = 0; x < m; x++) {
+            for (int y = 0; y < n; y++) {
+                if (obstacleGrid[x][y] == 1) {
+                    dp[x][y] = 0;
+                } else if (x == 0 || y == 0) {
+                    dp[x][y] = dp[Math.max(x - 1, 0)][Math.max(y - 1, 0)];
+                } else {
+                    dp[x][y] = dp[x - 1][y] + dp[x][y - 1];
+                }
+            }
+        }
+        return dp[m - 1][n - 1];
     }
 
     public int uniquePaths(int m, int n) {
-        int temp = 1;
-        return 0;
+        if (m == 1 || n == 1) return 1;
+        if (m == 2 || n == 2) return Math.max( m, n);
+        int[][] dp = new int[m][n];
+        for (int x = 0; x < m; x++) {
+            for (int y = 0; y < n; y++) {
+                if (x == 0 || y == 0) {
+                    dp[x][y] = 1;
+                } else {
+                    dp[x][y] = dp[x - 1][y] + dp[x][y - 1];
+                }
+            }
+        }
+        return dp[m - 1][n - 1];
     }
 
     public ListNode rotateRight(ListNode head, int k) {

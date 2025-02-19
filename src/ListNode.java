@@ -20,4 +20,13 @@ public class ListNode {
                 ", " + next +
                 '}';
     }
+
+    public static ListNode head() {
+        ListNode head = new ListNode(1);
+        ListNode tail = head;
+        for (int i = 2; i <= 5; i++) {
+            tail = (tail.next = new ListNode(i));
+        }
+        return head;
+    }
 }
