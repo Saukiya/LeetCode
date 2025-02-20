@@ -8,6 +8,9 @@ class Solution {
         System.out.println(Arrays.toString(args));
     }
 
+    private static void log1(Object... args) {
+    }
+
     public static void main(String[] args) {
         Solution solution = new Solution();
         timings = new TimingsUtil();
@@ -16,7 +19,115 @@ class Solution {
     }
 
     public static void start(Solution solution) {
-        log(Arrays.toString(solution.plusOne(new int[] {1, 0})));
+        log(solution.climbStairs(1));
+        log(solution.climbStairs(2));
+        log(solution.climbStairs(3));
+        log(solution.climbStairs(4));
+        log(solution.climbStairs(5));
+        log(solution.climbStairs(6));
+        log(solution.climbStairs(7));
+        log(solution.climbStairs(8));
+        log(solution.climbStairs(9));
+    }
+
+    public int climbStairs(int n) {
+        if (n < 4) return n;
+        int r = 2, l = 3, t;
+        for (int y = 3; y < n; y++) {
+            t = r + l;
+            r = l;
+            l = t;
+        }
+        return l;
+    }
+
+    public int mySqrt(int x) {
+        if (x < 2) return x;
+        int left = 1, right = Math.min(x / 2, 46340), ans = 0;
+        while (left <= right) {
+            int mid = (right + left) / 2;
+            if (mid > x / mid) {
+                right = mid - 1;
+            } else if (mid <= x / mid) {
+                left = mid + 1;
+                ans = mid;
+            }
+//            log(left, right, ans);
+        }
+        return ans;
+    }
+
+    public int[] evenOddBit(int n) {
+        int[] result = new int[2];
+        int i = 512, b = 1;
+        while (n > 0) {
+            if (n >= i) {
+                n -= i;
+                result[b]++;
+            }
+            i /= 2;
+            b ^= 1;
+        }
+        return result;
+    }
+
+    public List<String> fullJustify(String[] words, int maxWidth) {
+        List<String> result = new ArrayList<>();
+        int l = words.length, n = maxWidth - words[0].length(), r = 0;
+        for (int i = 1; i < l; i++) {
+            String word = words[i];
+            if (word.length() < n) {
+                n -= word.length() + 1;
+            } else {
+                StringBuilder sb = new StringBuilder();
+                int v = i - r - 1;
+                if (v == 0) {
+                    sb.append(words[r]);
+                    for (int x = 0; x < n; x++) {
+                        sb.append(' ');
+                    }
+                } else {
+                    int baseSpace = n / v, upSpace = n % v;
+                    while (r < i) {
+                        sb.append(words[r++]);
+                        if (v-- <= 0) continue;
+                        for (int x = upSpace-- > 0 ? -1 : 0; x <= baseSpace; x++) {
+                            sb.append(' ');
+                        }
+                    }
+                }
+                result.add(sb.toString());
+                n = maxWidth - word.length();
+                r = i;
+            }
+        }
+        StringBuilder sb = new StringBuilder(words[r++]);
+        while (r < l) {
+            sb.append(' ');
+            sb.append(words[r++]);
+        }
+        while (--n >= 0) {
+            sb.append(' ');
+        }
+        result.add(sb.toString());
+        return result;
+    }
+
+    public String addBinary(String a, String b) {
+        StringBuilder result = new StringBuilder();
+        int carry = 0;
+        int aL = a.length() - 1, bL = b.length() - 1;
+        while (aL >= 0 || bL >= 0) {
+            int sum = carry;
+            sum += aL >= 0 ? a.charAt(aL--) - '0' : 0;
+            sum += bL >= 0 ? b.charAt(bL--) - '0' : 0;
+            carry = sum > 1 ? 1 : 0;
+            result.append(sum % 2);
+        }
+        if (carry == 1) {
+            result.append(carry);
+        }
+        return result.reverse().toString();
     }
 
     public int[] plusOne(int[] digits) {
