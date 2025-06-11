@@ -4,9 +4,8 @@ public class Solution {
 
     public static void Main(string[] args)
     {
-        var timings = new TimingsUtil();
         var solution = new Solution();
-        Log.Info("2333");
+        var timings = new TimingsUtil();
         solution.Start();
         timings.Print();
     }
