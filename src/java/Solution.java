@@ -114,7 +114,7 @@ class Solution {
         if (sb.length() == 0) return;
         String temp = sb.toString();
         switch (temp) {
-            case "..":
+            case "src":
                 if (!pathDeque.isEmpty()) {
                     pathDeque.pollLast();
                 }
