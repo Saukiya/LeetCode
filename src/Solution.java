@@ -14,20 +14,165 @@ class Solution {
     public static void main(String[] args) {
         Solution solution = new Solution();
         timings = new TimingsUtil();
-        start(solution);
+        solution.start();
         timings.print();
     }
 
-    public static void start(Solution solution) {
-        log(solution.climbStairs(1));
-        log(solution.climbStairs(2));
-        log(solution.climbStairs(3));
-        log(solution.climbStairs(4));
-        log(solution.climbStairs(5));
-        log(solution.climbStairs(6));
-        log(solution.climbStairs(7));
-        log(solution.climbStairs(8));
-        log(solution.climbStairs(9));
+    public void start() {
+        searchMatrix(new int[][] {
+                new int[] {1,3,5,7},
+                new int[] {10,11,16,20},
+                new int[] {23,30,34,60},
+        }, 3);
+    }
+    public boolean searchMatrix(int[][] matrix, int target) {
+        int m = matrix.length;
+        int n = matrix[0].length;
+        // i = [0] - [m * n - 1]
+        // matrix[i / n][i % n]
+        if (m == 1 && n == 1) return matrix[0][0] == target;
+        
+        return true;
+    }
+    public void setZeroes(int[][] matrix) {
+        // matrix[row][col]
+        int rowLen = matrix.length;
+        int colLen = matrix[0].length;
+        boolean[] row = new boolean[rowLen];
+        boolean[] col = new boolean[colLen];
+        for (int i = 0; i < rowLen; i++) {
+            for (int j = 0; j < colLen; j++) {
+                // 如果扫到0就标记，并且回溯置0
+                if (matrix[i][j] == 0) {
+                    if (!row[i]) {
+                        row[i] = true;
+                        for (int j1 = 0; j1 < j; j1++) {
+                            matrix[i][j1] = 0;
+                        }
+                    }
+                    if (!col[j]) {
+                        col[j] = true;
+                        for (int i1 = 0; i1 < i; i1++) {
+                            matrix[i1][j] = 0;
+                        }
+                    }
+                }
+                // 没扫到就判断有没有标记，向前置0
+                if (row[i] || col[j]) {
+                    matrix[i][j] = 0;
+                }
+            }
+        }
+    }
+
+    public int minDistance(String word1, String word2) {
+        int l1 = word1.length();
+        int l2 = word2.length();
+        if (l1 * l2 == 0) return l1 + l2;
+        int[][] dp = new int[l1 + 1][l2 + 1];
+        char[] chars2 = word2.toCharArray();
+
+        for (int j = 1; j < l2 + 1; j++) {
+            dp[0][j] = j;
+        }
+
+        for (int i = 1; i < l1 + 1; i++) {
+            dp[i][0] = i;
+            char c1 = word1.charAt(i - 1);
+            for (int j = 1; j < l2 + 1; j++) {
+                if (c1 == chars2[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = Math.min(dp[i - 1][j], Math.min(dp[i - 1][j - 1], dp[i][j - 1])) + 1;
+                }
+            }
+        }
+        return dp[l1][l2];
+    }
+
+    public String simplifyPath(String path) {
+        Deque<String> pathDeque = new ArrayDeque<>();
+        StringBuilder sb = new StringBuilder();
+        for (char c : path.toCharArray()) {
+            if (c == '/') {
+                simplifyPath_1(sb, pathDeque);
+            } else {
+                sb.append(c);
+            }
+        }
+        simplifyPath_1(sb, pathDeque);
+        if (pathDeque.isEmpty()) {
+            return "/";
+        }
+        for (String s : pathDeque) {
+            sb.append("/").append(s);
+        }
+        return sb.toString();
+    }
+
+    private static void simplifyPath_1(StringBuilder sb, Deque<String> pathDeque) {
+        if (sb.length() == 0) return;
+        String temp = sb.toString();
+        switch (temp) {
+            case "..":
+                if (!pathDeque.isEmpty()) {
+                    pathDeque.pollLast();
+                }
+                break;
+            case ".":
+                break;
+            default:
+                pathDeque.addLast(temp);
+                break;
+        }
+        sb.setLength(0);
+    }
+
+    public int maxDifference(String s) {
+        int[] ints = new int[26];
+        int max1 = 0, max2 = Integer.MAX_VALUE;
+        for (char c : s.toCharArray()) {
+            ints[c - 'a']++;
+        }
+        for (int i : ints) {
+            if (i == 0) continue;
+            if (i % 2 == 0) {
+                max2 = Math.min(max2, i);
+            } else {
+                max1 = Math.max(max1, i);
+            }
+        }
+        return max1 - max2;
+    }
+
+    public int minimumWhiteTiles(String floor, int numCarpets, int carpetLen) {
+        char[] floors = floor.toCharArray();
+        int sum = 0;
+        for (char c : floors) {
+            sum += c - '0';
+        }
+        for (int ignore = 0; ignore < numCarpets; ignore++) {
+            int left = 0, right = 0, max = 0, temp = 0;
+            for (int i = 0; i < floors.length; i++) {
+                int v = floors[i] - '0';
+                if (left + carpetLen <= i) {
+                    temp = Math.max(temp - floors[left] + '0', 0);
+                    left++;
+                }
+                temp += v;
+                if (temp >= max) {
+                    max = temp;
+                    right = i;
+                }
+                if (temp == 0) {
+                    left = i;
+                }
+            }
+            sum -= max;
+            Arrays.fill(floors, Math.max(right - carpetLen + 1, 0), right + 1, '0');
+//            log(right, max, Arrays.toString(floors));
+        }
+        return sum;
     }
 
     public int climbStairs(int n) {
